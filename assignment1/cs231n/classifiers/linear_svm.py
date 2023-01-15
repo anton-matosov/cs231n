@@ -29,21 +29,38 @@ def svm_loss_naive(W, X, y, reg):
     num_train = X.shape[0]
     loss = 0.0
     for i in range(num_train):
-        scores = X[i].dot(W)
-        correct_class_score = scores[y[i]]
+        single_image = X[i]
+        yi = y[i]
+
+        ## Processing of a single image
+        scores = single_image.dot(W)
+        score_for_the_correct_class = scores[yi]
+        dW_for_single_image = np.zeros(W.shape)
+        dYiIndicator = 0
         for j in range(num_classes):
-            if j == y[i]:
+            if j == yi:
                 continue
-            margin = scores[j] - correct_class_score + 1  # note delta = 1
+            margin = scores[j] - score_for_the_correct_class + 1  # note delta = 1
             if margin > 0:
                 loss += margin
+                dYiIndicator += 1
+                dW_for_single_image[:, j] = single_image
+
+        dW_for_single_image[:, yi] = dYiIndicator * -single_image
+
+        dW += dW_for_single_image
+        
 
     # Right now the loss is a sum over all training examples, but we want it
     # to be an average instead so we divide by num_train.
     loss /= num_train
+    dW /= num_train
+
+    # *****
 
     # Add regularization to the loss.
     loss += reg * np.sum(W * W)
+    dW += reg * 2 * W
 
     #############################################################################
     # TODO:                                                                     #
@@ -78,7 +95,23 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    num_train = X.shape[0]
+    delta = 1
+
+    scores = X.dot(W)
+    all_train_indicies = np.arange(num_train)
+    correct_score = scores[all_train_indicies, y]
+    reshaped_correct_scores = np.reshape(correct_score, (-1, 1))
+
+    margins = np.maximum(scores - reshaped_correct_scores + delta, 0)
+    margins[all_train_indicies, y] = 0
+
+    loss = np.sum(margins)
+
+    # average for all examples
+    loss /= num_train
+    
+    loss += reg * np.sum(W * W)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
