@@ -86,7 +86,6 @@ def svm_loss_vectorized(W, X, y, reg):
     Inputs and outputs are the same as svm_loss_naive.
     """
     loss = 0.0
-    dW = np.zeros(W.shape)  # initialize the gradient as zero
 
     #############################################################################
     # TODO:                                                                     #
@@ -96,6 +95,7 @@ def svm_loss_vectorized(W, X, y, reg):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     num_train = X.shape[0]
+    num_classes = W.shape[1]
     delta = 1
 
     scores = X.dot(W)
@@ -106,7 +106,8 @@ def svm_loss_vectorized(W, X, y, reg):
     margins = np.maximum(scores - reshaped_correct_scores + delta, 0)
     margins[all_train_indicies, y] = 0
 
-    loss = np.sum(margins)
+    loss_per_example = np.sum(margins, axis=1)
+    loss = np.sum(loss_per_example)
 
     # average for all examples
     loss /= num_train
@@ -126,7 +127,26 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # if j == yi:
+    #     continue
+    # margin = scores[j] - score_for_the_correct_class + 1  # note delta = 1
+    # if margin > 0:
+    #     loss += margin
+    #     dYiIndicator += 1
+    #     dW_for_single_image[:, j] = single_image
+
+    # dW_for_single_image[:, yi] = dYiIndicator * -single_image
+
+    grad_scales = np.zeros(margins.shape)
+    grad_scales[margins > 0] = 1
+    grad_scales[all_train_indicies, y] = np.sum(grad_scales, axis=1) * -1
+
+    dW = X.T.dot(grad_scales)
+    dW /= num_train
+    assert dW.shape == W.shape, "dW should be the same shape as W"
+
+    dW += reg * 2 * W
+
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
