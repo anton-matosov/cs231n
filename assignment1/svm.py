@@ -331,12 +331,32 @@ best_svm = None # The LinearSVM object that achieved the highest validation rate
 ################################################################################
 
 # Provided as a reference. You may or may not want to change these hyperparameters
-learning_rates = [1e-7, 5e-5]
-regularization_strengths = [2.5e4, 5e4]
-
+learning_rates = np.logspace(-6.8, -6.0, num=5)
+regularization_strengths = np.logspace(3, 5, num=5)
+# [5.011872e-07] # 
 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-pass
+from cs231n.classifiers import LinearSVM
+
+for regularization_strength in regularization_strengths:
+    for learning_rate in learning_rates:
+        svm = LinearSVM()        
+        print("lr ", learning_rate, " reg ", regularization_strength)
+        loss_hist = svm.train(X_train, y_train, learning_rate=learning_rate, reg=regularization_strength,
+                            num_iters=3000, verbose=True)
+        
+        y_train_pred = svm.predict(X_train)
+        training_accuracy = np.mean(y_train == y_train_pred)
+        print('training accuracy: %f' % training_accuracy, )
+
+        y_val_pred = svm.predict(X_val)
+        validation_accuracy = np.mean(y_val == y_val_pred)
+        print('validation accuracy: %f' % validation_accuracy, )
+        results[(learning_rate, regularization_strength)] = (training_accuracy, validation_accuracy)
+
+        if validation_accuracy > best_val:
+            best_val = validation_accuracy
+            best_svm = svm
 
 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     
