@@ -28,7 +28,11 @@ def affine_forward(x, w, b):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # print("x.shape", x.shape)
+    # print("w.shape", w.shape)
+    # print("b.shape", b.shape)
+    # print("x.reshape(x.shape[0], -1).shape", x.reshape(x.shape[0], -1).shape)
+    out = x.reshape(x.shape[0], -1).dot(w) + b
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
