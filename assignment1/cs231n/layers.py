@@ -65,7 +65,24 @@ def affine_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # print("dout.shape", dout.shape)
+    # print("x.shape", x.shape)
+    # print("w.shape", w.shape)
+    # print("b.shape", b.shape)
+
+    x_reshape = x.reshape(x.shape[0], -1)
+    # print("x_reshape.shape", x_reshape.shape)
+
+    # dout.shape (10, 5)
+    # x.shape (10, 2, 3)
+    # w.shape (6, 5)
+    # b.shape (5,)
+    # x_reshape.shape (10, 6)
+    # out = x_reshape.dot(w) + b
+    dx = dout.dot(w.T).reshape(x.shape)
+    dw = x_reshape.T.dot(dout)
+    db = np.sum(dout, axis=0)
+    
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -91,7 +108,7 @@ def relu_forward(x):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    out = np.maximum(x, 0)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -118,8 +135,11 @@ def relu_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # print("dout.shape = ", dout.shape)
+    # print("x.shape = ", x.shape)
+    dx = dout * (x > 0)
 
+    # print("dx.shape = ", dx.shape)
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -777,7 +797,56 @@ def svm_loss(x, y):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    
+    num_train = x.shape[0]
+    delta = 1
+
+    scores = x
+    all_train_indicies = np.arange(num_train)
+    correct_score = scores[all_train_indicies, y]
+    reshaped_correct_scores = np.reshape(correct_score, (-1, 1))
+
+    margins = np.maximum(scores - reshaped_correct_scores + delta, 0)
+    margins[all_train_indicies, y] = 0
+
+    loss_per_example = np.sum(margins, axis=1)
+    loss = np.sum(loss_per_example)
+
+    # average for all examples
+    loss /= num_train
+    
+
+    # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+
+    #############################################################################
+    # TODO:                                                                     #
+    # Implement a vectorized version of the gradient for the structured SVM     #
+    # loss, storing the result in dW.                                           #
+    #                                                                           #
+    # Hint: Instead of computing the gradient from scratch, it may be easier    #
+    # to reuse some of the intermediate values that you used to compute the     #
+    # loss.                                                                     #
+    #############################################################################
+    # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+
+    # if j == yi:
+    #     continue
+    # margin = scores[j] - score_for_the_correct_class + 1  # note delta = 1
+    # if margin > 0:
+    #     loss += margin
+    #     dYiIndicator += 1
+    #     dW_for_single_image[:, j] = single_image
+
+    # dW_for_single_image[:, yi] = dYiIndicator * -single_image
+
+    grad_scales = np.zeros(margins.shape)
+    grad_scales[margins > 0] = 1
+    grad_scales[all_train_indicies, y] = np.sum(grad_scales, axis=1) * -1
+
+    dx = grad_scales
+    dx /= num_train
+    assert dx.shape == x.shape, "dx should be the same shape as x"
+
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -785,6 +854,8 @@ def svm_loss(x, y):
     ###########################################################################
     return loss, dx
 
+
+from cs231n.classifiers.softmax import softmax_loss_vectorized
 
 def softmax_loss(x, y):
     """
@@ -807,7 +878,22 @@ def softmax_loss(x, y):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    
+    num_train = x.shape[0]
+
+    all_train_indicies = np.arange(num_train)
+    correct_score = x[all_train_indicies, y]
+
+    scores_exp = np.exp(x)
+    all_class_scores_exp_sum = np.sum(scores_exp, axis=1)
+    loss = np.sum(-correct_score + np.log(all_class_scores_exp_sum))    
+    loss /= num_train
+
+    dx = scores_exp / all_class_scores_exp_sum[:, np.newaxis]
+    dx[all_train_indicies, y] -= 1
+    dx /= num_train
+
+    assert dx.shape == x.shape, "dx should be the same shape as x"
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################

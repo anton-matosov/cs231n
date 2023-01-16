@@ -55,7 +55,11 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        self.params['W1'] = np.random.normal(loc=0, scale=weight_scale, size=(input_dim, hidden_dim))
+        self.params['b1'] = np.zeros(hidden_dim)
+
+        self.params['W2'] = np.random.normal(loc=0, scale=weight_scale, size=(hidden_dim, num_classes))
+        self.params['b2'] = np.zeros(num_classes)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -88,7 +92,12 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        
+        out1, cache1 = affine_relu_forward(X, self.params['W1'], self.params['b1'])
+        out2, cache2 = affine_relu_forward(out1, self.params['W2'], self.params['b2'])
+        # dx, dw, db = affine_relu_backward(dout, cache)
+
+        scores = out2
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -112,8 +121,21 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        def l2_reg(w):
+            return self.reg * 0.5 * np.sum(w * w)
+        def l2_reg_grad(w):
+            return self.reg * w
 
+        loss, lossGrad = softmax_loss(scores, y)
+        loss += l2_reg(self.params['W1']) + l2_reg(self.params['W2'])
+
+        dx2, dw2, db2 = affine_relu_backward(lossGrad, cache2)
+        dx1, dw1, db1 = affine_relu_backward(dx2, cache1)
+
+        grads['W1'] = dw1 + l2_reg_grad(self.params['W1'])
+        grads['W2'] = dw2 + l2_reg_grad(self.params['W2'])
+        grads['b1'] = db1
+        grads['b2'] = db2
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #

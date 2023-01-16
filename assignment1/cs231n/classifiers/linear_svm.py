@@ -95,7 +95,6 @@ def svm_loss_vectorized(W, X, y, reg):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     num_train = X.shape[0]
-    num_classes = W.shape[1]
     delta = 1
 
     scores = X.dot(W)
