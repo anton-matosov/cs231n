@@ -160,3 +160,7 @@ cython_debug/
 #.idea/
 
 .vscode
+
+# Datasets
+**/datasets/cifar-10*
+**/datasets/imagenet*
