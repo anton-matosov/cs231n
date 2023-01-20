@@ -74,7 +74,12 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        dims = [input_dim] + hidden_dims + [num_classes]
+        for i in range(len(dims) - 1):
+            inp_dim = dims[i]
+            out_dims = dims[i + 1]
+            self.params[f'W{i + 1}'] = np.random.normal(loc=0, scale=weight_scale, size=(inp_dim, out_dims))
+            self.params[f'b{i + 1}'] = np.zeros(out_dims)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -147,8 +152,13 @@ class FullyConnectedNet(object):
         # layer, etc.                                                              #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        
+        out = X
+        cache = {}
 
-        pass
+        for i in range(self.num_layers):
+            out, cache[i] = affine_relu_forward(out, self.params[f'W{i + 1}'], self.params[f'b{i + 1}'])
+        scores = out
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -175,8 +185,23 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        
+        def l2_reg(w):
+            return self.reg * 0.5 * np.sum(w * w)
+        def l2_reg_grad(w):
+            return self.reg * w
 
+        loss, lossGrad = softmax_loss(scores, y)
+        
+        dx = lossGrad
+        for i in range(self.num_layers - 1, -1, -1):
+            w = self.params[f'W{i + 1}']
+            loss += l2_reg(w)
+
+            dx, dw, db = affine_relu_backward(dx, cache[i])
+            grads[f'W{i + 1}'] = dw + l2_reg_grad(w)
+            grads[f'b{i + 1}'] = db
+        
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #

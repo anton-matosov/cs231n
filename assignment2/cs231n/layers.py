@@ -25,7 +25,12 @@ def affine_forward(x, w, b):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    
+    # print("x.shape", x.shape)
+    # print("w.shape", w.shape)
+    # print("b.shape", b.shape)
+    # print("x.reshape(x.shape[0], -1).shape", x.reshape(x.shape[0], -1).shape)
+    out = x.reshape(x.shape[0], -1).dot(w) + b
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -57,7 +62,25 @@ def affine_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    
+    # print("dout.shape", dout.shape)
+    # print("x.shape", x.shape)
+    # print("w.shape", w.shape)
+    # print("b.shape", b.shape)
+
+    x_reshape = x.reshape(x.shape[0], -1)
+    # print("x_reshape.shape", x_reshape.shape)
+
+    # dout.shape (10, 5)
+    # x.shape (10, 2, 3)
+    # w.shape (6, 5)
+    # b.shape (5,)
+    # x_reshape.shape (10, 6)
+    # out = x_reshape.dot(w) + b
+    dx = dout.dot(w.T).reshape(x.shape)
+    dw = x_reshape.T.dot(dout)
+    db = np.sum(dout, axis=0)
+    
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -82,7 +105,8 @@ def relu_forward(x):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    
+    out = np.maximum(x, 0)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -108,7 +132,9 @@ def relu_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # print("dout.shape = ", dout.shape)
+    # print("x.shape = ", x.shape)
+    dx = dout * (x > 0)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -137,7 +163,22 @@ def softmax_loss(x, y):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    
+    num_train = x.shape[0]
+
+    all_train_indicies = np.arange(num_train)
+    correct_score = x[all_train_indicies, y]
+
+    scores_exp = np.exp(x)
+    all_class_scores_exp_sum = np.sum(scores_exp, axis=1)
+    loss = np.sum(-correct_score + np.log(all_class_scores_exp_sum))    
+    loss /= num_train
+
+    dx = scores_exp / all_class_scores_exp_sum[:, np.newaxis]
+    dx[all_train_indicies, y] -= 1
+    dx /= num_train
+
+    assert dx.shape == x.shape, "dx should be the same shape as x"
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
