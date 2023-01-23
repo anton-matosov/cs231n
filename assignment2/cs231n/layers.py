@@ -260,7 +260,20 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        minibatch_mean = np.sum(x, axis=0) / N
+        # print('N', N)
+        # print('D', D)
+        # print('minibatch_mean', minibatch_mean)
+        # assert False
+        minibatch_variance = np.sum(np.square(x - minibatch_mean), axis=0) / N
+        # print('minibatch_mean', minibatch_mean)
+        # print('minibatch_variance', minibatch_variance)
+          
+        out = (x - minibatch_mean) / np.sqrt(minibatch_variance + eps) # normalize
+        out = gamma * out + beta # scale and shift
+
+        running_mean = momentum * running_mean + (1 - momentum) * minibatch_mean
+        running_var = momentum * running_var + (1 - momentum) * minibatch_variance
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
