@@ -163,9 +163,12 @@ def softmax_loss(x, y):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    
     num_train = x.shape[0]
 
+    # https://stackoverflow.com/questions/42599498/numerically-stable-softmax
+    # Shift for better numerical stability, otherwise multilayer doesn't train at all
+    x = x - np.max(x, axis=1, keepdims=True)
+  
     all_train_indicies = np.arange(num_train)
     correct_score = x[all_train_indicies, y]
 
