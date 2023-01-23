@@ -157,7 +157,10 @@ class FullyConnectedNet(object):
         cache = {}
 
         for i in range(self.num_layers):
-            out, cache[i] = affine_relu_forward(out, self.params[f'W{i + 1}'], self.params[f'b{i + 1}'])
+            if i == self.num_layers - 1:
+                out, cache[i] = affine_forward(out, self.params[f'W{i + 1}'], self.params[f'b{i + 1}'])
+            else:
+                out, cache[i] = affine_relu_forward(out, self.params[f'W{i + 1}'], self.params[f'b{i + 1}'])
         scores = out
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -194,11 +197,14 @@ class FullyConnectedNet(object):
         loss, lossGrad = softmax_loss(scores, y)
         
         dx = lossGrad
-        for i in range(self.num_layers - 1, -1, -1):
+        for i in reversed(range(self.num_layers)):
             w = self.params[f'W{i + 1}']
             loss += l2_reg(w)
 
-            dx, dw, db = affine_relu_backward(dx, cache[i])
+            if i == self.num_layers - 1:
+                dx, dw, db = affine_backward(dx, cache[i])
+            else:
+                dx, dw, db = affine_relu_backward(dx, cache[i])
             grads[f'W{i + 1}'] = dw + l2_reg_grad(w)
             grads[f'b{i + 1}'] = db
         
